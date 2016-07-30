@@ -171,7 +171,7 @@ class FactRow(object):
                 g.translate(0, self.tag_label.height + 5)
 
             if fact.description:
-                self.description_label.show(g, "<small>%s</small>" % fact.description)
+                self.description_label.show(g, "<small>%s</small>" % stuff.escape_pango(fact.description))
             g.restore_context()
 
         self.duration_label.show(g, stuff.format_duration(fact.delta), x=self.width - 105)
@@ -185,9 +185,9 @@ class FactTree(graphics.Scene, gtk.Scrollable):
     """
     The fact tree is a painter - it maintains scroll state and shows what we can
     see. That means it does not show all the facts there are, but rather only
-    those tht you can see.
+    those that you can see.
     It's also painter as it reuses labels. Caching is futile, we do all the painting
-    every tie
+    every time
 
 
 
@@ -287,6 +287,12 @@ class FactTree(graphics.Scene, gtk.Scrollable):
         elif event.keyval == gdk.KEY_Page_Up:
             self.y -= self.height * 0.8
             self.on_scroll()
+
+        elif event.keyval == gdk.KEY_Home:
+            self.set_current_fact(0)
+
+        elif event.keyval == gdk.KEY_End:
+            self.set_current_fact(len(self.facts) - 1)
 
         elif event.keyval == gdk.KEY_Return:
             self.activate_row(self.hover_day, self.current_fact)
@@ -442,9 +448,10 @@ class FactTree(graphics.Scene, gtk.Scrollable):
 
         maxy = max(y, 1)
 
-        self.vadjustment.set_lower(0)
-        self.vadjustment.set_upper(max(maxy, self.height))
-        self.vadjustment.set_page_size(self.height)
+        if self.vadjustment:
+            self.vadjustment.set_lower(0)
+            self.vadjustment.set_upper(max(maxy, self.height))
+            self.vadjustment.set_page_size(self.height)
 
 
     def on_resize(self, scene, event):
@@ -467,8 +474,9 @@ class FactTree(graphics.Scene, gtk.Scrollable):
             direction = 1
 
         y_pos += 15 * direction
-        y_pos = max(0, min(self.vadjustment.get_upper() - self.height, y_pos))
-        self.vadjustment.set_value(y_pos)
+        if self.vadjustment:
+            y_pos = max(0, min(self.vadjustment.get_upper() - self.height, y_pos))
+            self.vadjustment.set_value(y_pos)
         self.y = y_pos
 
         self.move_actions()

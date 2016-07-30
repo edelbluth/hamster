@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # nicked off gwibber
 
 from gi.repository import GObject as gobject
@@ -54,8 +54,7 @@ class Storage(db.Storage, dbus.service.Object):
 
         self.__file = gio.File.new_for_path(__file__)
         self.__monitor = self.__file.monitor_file(gio.FileMonitorFlags.WATCH_MOUNTS | \
-                                                  gio.FileMonitorFlags.SEND_MOVED | \
-                                                  gio.FileMonitorFlags.WATCH_HARD_LINKS,
+                                                  gio.FileMonitorFlags.SEND_MOVED,
                                                   None)
         self.__monitor.connect("changed", self._on_us_change)
 
@@ -189,7 +188,7 @@ class Storage(db.Storage, dbus.service.Object):
         Parameters:
         i start_date: Seconds since epoch (timestamp). Use 0 for today
         i end_date: Seconds since epoch (timestamp). Use 0 for today
-        s search_terms: Bleh
+        s search_terms: Bleh. If starts with "not ", the search terms will be reversed
         Returns Array of fact where fact is struct of:
             i  id
             i  start_time
@@ -197,7 +196,7 @@ class Storage(db.Storage, dbus.service.Object):
             s  description
             s  activity name
             i  activity id
-            i  category name
+            s  category name
             as List of fact tags
             i  date
             i  delta
@@ -261,7 +260,7 @@ class Storage(db.Storage, dbus.service.Object):
         return [(row['id'],
                  row['name'],
                  row['category_id'],
-                 row['name'] or '') for row in
+                 row['category'] or '') for row in
                       self.get_category_activities(category_id = category_id)]
 
 

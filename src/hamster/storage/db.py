@@ -90,8 +90,7 @@ class Storage(storage.Storage):
 
             self.__database_file = gio.File.new_for_path(self.db_path)
             self.__db_monitor = self.__database_file.monitor_file(gio.FileMonitorFlags.WATCH_MOUNTS | \
-                                                                  gio.FileMonitorFlags.SEND_MOVED | \
-                                                                  gio.FileMonitorFlags.WATCH_HARD_LINKS,
+                                                                  gio.FileMonitorFlags.SEND_MOVED,
                                                                   None)
             self.__db_monitor.connect("changed", on_db_file_change)
 
@@ -677,12 +676,16 @@ class Storage(storage.Storage):
             # check if we need changes to the index
             self.__check_index(datetime_from, datetime_to)
 
+            # flip the query around when it starts with "not "
+            reverse_search_terms = search_terms.lower().startswith("not ")
+            if reverse_search_terms:
+                search_terms = search_terms[4:]
+
             search_terms = search_terms.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_').replace("'", "''")
-            query += """ AND a.id in (SELECT id
-                                        FROM fact_index
-                                       WHERE fact_index MATCH '%s')""" % search_terms
-
-
+            query += """ AND a.id %s IN (SELECT id
+                                         FROM fact_index
+                                         WHERE fact_index MATCH '%s')""" % ('NOT' if reverse_search_terms else '',
+                                                                            search_terms)
 
         query += " ORDER BY a.start_time, e.name"
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014 Toms Bauģis <toms.baugis at gmail.com>
@@ -83,9 +83,9 @@ class HeaderBar(gtk.HeaderBar):
 
         self.system_menu = gtk.Menu()
         self.system_button.set_popup(self.system_menu)
-        self.menu_export = gtk.MenuItem(label="Export...")
+        self.menu_export = gtk.MenuItem(label=_("Export..."))
         self.system_menu.append(self.menu_export)
-        self.menu_prefs = gtk.MenuItem(label="Tracking Settings")
+        self.menu_prefs = gtk.MenuItem(label=_("Tracking Settings"))
         self.system_menu.append(self.menu_prefs)
         self.system_menu.show_all()
 
@@ -251,7 +251,7 @@ class Totals(graphics.Scene):
         self.totals = {}
         self.mouse_cursor = gdk.CursorType.HAND2
 
-        self.instructions_label = layout.Label("Click to see stats",
+        self.instructions_label = layout.Label(_("Click to see stats"),
                                                color=self._style.get_color(gtk.StateFlags.NORMAL),
                                                padding=10,
                                                expand=False)
@@ -439,7 +439,11 @@ class Overview(Controller):
             # the ctrl+things
             if event.keyval == gdk.KEY_f:
                 self.header_bar.search_button.set_active(True)
+            elif event.keyval == gdk.KEY_n:
+                dialogs.edit.show(self)
 
+        if event.keyval == gdk.KEY_Escape:
+            self.close_window()
 
     def find_facts(self):
         start, end = self.header_bar.range_pick.get_range()
@@ -519,3 +523,9 @@ class Overview(Controller):
         self.report_chooser.connect("report-chosen", on_report_chosen)
         self.report_chooser.connect("report-chooser-closed", on_report_chooser_closed)
         self.report_chooser.show(start, end)
+
+    def close_window(self):
+        self.window.destroy()
+        self.window = None
+        self._gui = None
+        self.emit("on-close")

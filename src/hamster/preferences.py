@@ -92,7 +92,8 @@ class PreferencesEditor(Controller):
         # Translators: 'None' refers here to the Todo list choice in Hamster preferences (Tracking tab)
         self.activities_sources = [("", _("None")),
                                    ("evo", "Evolution"),
-                                   ("gtg", "Getting Things Gnome")]
+                                   ("gtg", "Getting Things Gnome"),
+                                   ("task", "Taskwarrior")]
         self.todo_combo = gtk.ComboBoxText()
         for code, label in self.activities_sources:
             self.todo_combo.append_text(label)
@@ -342,7 +343,7 @@ class PreferencesEditor(Controller):
             new = new_text
             runtime.storage.update_activity(id, new, category_id)
             # size matters - when editing activity name just changed the case (bar -> Bar)
-            if prev != new and prev.lower() == new.lower():
+            if prev != new and None != prev and prev.lower() == new.lower():
                 trophies.unlock("size_matters")
 
         model[path][1] = new_text
@@ -454,8 +455,8 @@ class PreferencesEditor(Controller):
 
         selection = self.activity_tree.get_selection()
         (model, iter) = selection.get_selected()
-        path = model.get_path(iter)[0]
-        self.activity_tree.set_cursor_on_cell(path, focus_column = self.activityColumn, start_editing = True)
+        path = model.get_path(iter)
+        self.activity_tree.set_cursor_on_cell(path, self.activityColumn, self.activityCell, True)
 
 
 
@@ -469,8 +470,8 @@ class PreferencesEditor(Controller):
 
         elif key == gdk.KEY_F2 :
             self.activityCell.set_property("editable", True)
-            path = model.get_path(iter)[0]
-            tree.set_cursor_on_cell(path, focus_column = self.activityColumn, start_editing = True)
+            path = model.get_path(iter)
+            tree.set_cursor_on_cell(path, self.activityColumn, self.activityCell, True)
 
     def remove_current_activity(self):
         selection = self.activity_tree.get_selection()
@@ -487,8 +488,8 @@ class PreferencesEditor(Controller):
 
         selection = self.category_tree.get_selection()
         (model, iter) = selection.get_selected()
-        path = model.get_path(iter)[0]
-        self.category_tree.set_cursor_on_cell(path, focus_column = self.categoryColumn, start_editing = True)
+        path = model.get_path(iter)
+        self.category_tree.set_cursor_on_cell(path, self.categoryColumn, self.categoryCell, True)
 
 
     def on_category_list_key_pressed(self, tree, event_key):
@@ -504,8 +505,8 @@ class PreferencesEditor(Controller):
             self.remove_current_category()
         elif key == gdk.KEY_F2:
             self.categoryCell.set_property("editable", True)
-            path = model.get_path(iter)[0]
-            tree.set_cursor_on_cell(path, focus_column = self.categoryColumn, start_editing = True)
+            path = model.get_path(iter)
+            tree.set_cursor_on_cell(path, self.categoryColumn, self.categoryCell, True)
 
     def remove_current_category(self):
         selection = self.category_tree.get_selection()
@@ -540,8 +541,10 @@ class PreferencesEditor(Controller):
         new_category = self.category_store.insert_before(self.category_store.unsorted_category,
                                                          [-2, _(u"New category")])
 
+        model = self.category_tree.get_model()
+
         self.categoryCell.set_property("editable", True)
-        self.category_tree.set_cursor_on_cell((len(self.category_tree.get_model()) - 2, ),
+        self.category_tree.set_cursor_on_cell(model.get_path(new_category),
                                          focus_column = self.category_tree.get_column(0),
                                          focus_cell = None,
                                          start_editing = True)
